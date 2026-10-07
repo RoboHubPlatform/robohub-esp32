@@ -2,24 +2,55 @@ cmake_minimum_required(VERSION 3.16)
 project(robohub-esp32 C ASM)
 
 # ---------------------------------------------------------------------------
-# Locate robohub-common
+# Locating a sibling module
 # ---------------------------------------------------------------------------
+# A path is never hard-coded. The order is: a variable the parent build already
+# set — rho writes one for every dependency — then the environment, then a
+# sibling checkout, which is the ordinary multi-repo layout, and finally the
+# module's own repository, fetched. The same file is then true on every machine.
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/deps.cmake")
   include("${CMAKE_CURRENT_SOURCE_DIR}/deps.cmake")
 endif()
 
-if(NOT ROBOHUB_COMMON_DIR)
-  if(EXISTS "/home/miraur/projects/robohub-common")
-    set(ROBOHUB_COMMON_DIR "/home/miraur/projects/robohub-common")
-  elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../robohub-common")
-    get_filename_component(ROBOHUB_COMMON_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../robohub-common" ABSOLUTE)
-  elseif(DEFINED ENV{ROBOHUB_COMMON_DIR})
-    set(ROBOHUB_COMMON_DIR "$ENV{ROBOHUB_COMMON_DIR}")
-  else()
-    message(FATAL_ERROR "robohub-common not found. Set ROBOHUB_COMMON_DIR or place it beside this project.")
+# robohub_locate_module(<name> <out-var>): find a sibling module and set the
+# variable to its directory. `<name>` is the module's name, so the variable is
+# its upper-case form with `_DIR` appended — robohub-common becomes
+# ROBOHUB_COMMON_DIR, the name a parent build or the environment can carry.
+function(robohub_locate_module module out_var)
+  string(TOUPPER "${module}" upper)
+  string(REPLACE "-" "_" upper "${upper}")
+  if(${out_var})
+    return()
   endif()
+  if(DEFINED ENV{${upper}_DIR})
+    set(${out_var} "$ENV{${upper}_DIR}" PARENT_SCOPE)
+    return()
+  endif()
+  # A sibling checkout, searched upward: a module may sit nested — a driver
+  # inside a collection — with the sibling several levels above it.
+  set(dir "${CMAKE_CURRENT_SOURCE_DIR}")
+  foreach(level RANGE 6)
+    get_filename_component(parent "${dir}/.." ABSOLUTE)
+    if(EXISTS "${parent}/${module}/CMakeLists.txt")
+      set(${out_var} "${parent}/${module}" PARENT_SCOPE)
+      return()
+    endif()
+    set(dir "${parent}")
+  endforeach()
+  include(FetchContent)
+  message(STATUS "[${PROJECT_NAME}] fetching ${module}")
+  FetchContent_Declare(${module}
+    GIT_REPOSITORY "https://github.com/RoboHubPlatform/${module}.git"
+    GIT_TAG main GIT_SHALLOW TRUE GIT_PROGRESS TRUE)
+  FetchContent_MakeAvailable(${module})
+  set(${out_var} "${${module}_SOURCE_DIR}" PARENT_SCOPE)
+endfunction()
+
+robohub_locate_module(robohub-common ROBOHUB_COMMON_DIR)
+if(NOT ROBOHUB_COMMON_DIR)
+  message(FATAL_ERROR "robohub-common not found and could not be fetched")
 endif()
-message(STATUS "[robohub-esp32] robohub-common at ${ROBOHUB_COMMON_DIR}")
+message(STATUS "[${PROJECT_NAME}] robohub-common at ${ROBOHUB_COMMON_DIR}")
 
 # Added only when this platform *is* the project. Built as a dependency — the
 # usual case — the generated project adds robohub-common itself, right after
