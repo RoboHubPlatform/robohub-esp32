@@ -1,0 +1,18 @@
+{
+  "kind": "mcu",
+  "name": "esp32",
+  "comment": "The ESP32 (Xtensa LX6, two cores): 520 KB of SRAM and, on the modules this platform knows, 4 MB of external flash. Unlike an ARM part it has no single image: the bootloader, a partition table and the application are three binaries at three flash offsets.",
+  "arch": "xtensa",
+  "core": "lx6",
+  "comment_linker": "The linker scripts, the memory map, the startup and the bootloader are ESP-IDF's, through the board's prelude: an ESP32 image needs the vendor's second-stage bootloader and its linker fragments, and a second copy of either is a second thing to keep in step with the silicon.",
+  "toolchain": {
+    "compiler": "xtensa-esp32-elf-gcc",
+    "prelude": "../boards/lolin32-lite/idf.cmake",
+    "comment": "the compiler is named so CMake has one before `project()`; the prelude locates ESP-IDF and hands the build to it, and the flags, the linker fragments and the bootloader come from there"
+  },
+  "flash": {
+    "tool": "esptool",
+    "command": "esptool --chip esp32 write_flash @flash_args",
+    "comment": "the ROM's own serial protocol over the board's USB-serial chip; the three binaries and their offsets come from what ESP-IDF built"
+  }
+}

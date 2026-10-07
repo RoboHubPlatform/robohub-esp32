@@ -1,0 +1,11 @@
+{
+  "kind": "arch",
+  "name": "xtensa",
+  "comment": "The Xtensa architectures a bare-metal Rho project targets. A chip names this as its arch and inherits the toolchain below; unlike the Cortex-M family the part is chosen by the chip's own flags, because one toolchain serves every Xtensa core.",
+  "toolchain": {
+    "compiler": "xtensa-esp32-elf-gcc",
+    "linker": "xtensa-esp32-elf-gcc",
+    "objcopy": "xtensa-esp32-elf-objcopy",
+    "size": "xtensa-esp32-elf-size"
+  }
+}

@@ -1,0 +1,13 @@
+# hello_world configuration
+
+config RH_HAL_GPIO
+    bool "GPIO"
+    default y
+
+config RH_HAL_TIMER
+    bool "Timer"
+    default y
+
+config RH_BOARD_LOLIN32_LITE
+    bool "LOLIN32 Lite"
+    default y

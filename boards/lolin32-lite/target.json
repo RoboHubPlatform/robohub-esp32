@@ -1,0 +1,40 @@
+{
+  "kind": "board",
+  "name": "lolin32-lite",
+  "comment": "WEMOS LOLIN32 Lite: ESP32-WROOM-32, 4 MB flash, 520 KB SRAM, a CH340 USB-serial chip and an LED on GPIO5. Programmed over that serial chip by the ROM's own protocol.",
+  "board": "LOLIN32_LITE",
+  "mcu": "ESP32",
+  "core": "lx6",
+  "preset": "esp32",
+  "toolchain": {
+    "compiler": "xtensa-esp32-elf-gcc",
+    "prelude": "idf.cmake",
+    "comment": "the compiler is named so CMake has one before `project()`; the prelude locates ESP-IDF, which owns the flags, the linker fragments and the bootloader"
+  },
+  "flash": {
+    "tool": "esptool",
+    "command": "esptool --chip esp32 write_flash @flash_args",
+    "comment": "the ROM's serial protocol: the bootloader at 0x1000, the partition table at 0x8000 and the application at 0x10000, all written by the platform's own tool"
+  },
+  "pins": {
+    "user_led": {
+      "gpio": 5,
+      "active_high": false,
+      "comment": "the on-board LED, on GPIO5 and lit when the pin is low"
+    },
+    "uart0_tx": {
+      "gpio": 1
+    },
+    "uart0_rx": {
+      "gpio": 3
+    }
+  },
+  "layout": {
+    "dir": "main",
+    "register": "component.cmake",
+    "sources": [
+      "app_main.c"
+    ]
+  },
+  "comment_layout": "ESP-IDF builds a program as a component, so the program's sources live in `main/` with a build file that registers them; the platform's own file does the registering, because that call is ESP-IDF's name and not Rho's."
+}

@@ -1,0 +1,14 @@
+# lolin32-lite board configuration
+
+config RH_BOARD_LOLIN32_LITE
+    bool "LOLIN32 Lite"
+    default y
+    help
+      WEMOS LOLIN32 Lite: an ESP32-WROOM-32 with 4 MB of flash.
+
+config RH_CONSOLE_UART_NUM
+    int "Console UART"
+    default 0
+    help
+      Which UART the console is on. UART0 is the one the ROM prints to and the
+      one the USB-serial chip is wired to.
