@@ -1,0 +1,57 @@
+#
+# hello_world — the same application as `examples/rho/hello_world`, in C.
+#
+# Blinks the LOLIN32 Lite's LED and writes a line to the console every second.
+#
+# @project RoboHub Platform
+# @license MIT
+#
+
+module:
+  name: hello-world
+  type: module
+  version: 0.1.0
+  description: >
+    Blinks the on-board LED of a LOLIN32 Lite and writes a line to the console.
+
+  maintainer: "Aurel Miron"
+  license: "MIT"
+  created: "2026-10-07"
+
+main: src/main.c
+
+build:
+  language: c
+  sources:
+    - src/main.c
+  output_dir: output
+  presets:
+    - lolin32-lite
+
+depends:
+  - name: robohub-esp32
+    type: c
+    path: /home/miraur/projects/robohub-esp32
+    git: https://github.com/RoboHubPlatform/robohub-esp32
+    branch: main
+
+c_connection:
+  library: "robohub-esp32"
+  headers:
+    - platform.h
+    - console.h
+    - gpio.h
+    - timer.h
+    - error.h
+    - types.h
+    - registry.h
+
+config:
+  dialect: linux
+  kconfig_fragments:
+    - Kconfig
+  values_file: project.conf
+
+package:
+  kind: library
+  binary: false

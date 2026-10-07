@@ -1,0 +1,117 @@
+#
+# robohub-esp32 — RoboHub platform for ESP32 boards.
+#
+# Implements the robohub-common HAL interfaces for the ESP32 (Xtensa LX6)
+# using the official Espressif ESP-IDF.
+#
+# @project RoboHub Platform
+# @license MIT
+#
+
+module:
+  name: robohub-esp32
+  type: platform
+  version: 0.1.0
+  description: >
+    RoboHub platform for ESP32 boards. Implements the robohub-common HAL
+    contracts using ESP-IDF, the way robohub-pico uses the Pico SDK.
+
+  maintainer: "Aurel Miron"
+  license: "MIT"
+  created: "2026-10-07"
+
+platform: robohub
+
+hardware:
+  boards: boards/
+  supported:
+    - lolin32-lite
+  presets: presets/
+  targets: targets/
+  kconfig: kconfig/
+
+vendor:
+  dir: vendor
+
+build:
+  language: c
+  standard: c11
+
+  defines:
+    - ESP_PLATFORM=1
+
+  include_dirs:
+    - include/
+    - include/robohub/
+    - include/robohub/hal/
+    - include/robohub/platform/
+    - include/robohub/drivers/
+
+  guarded_sources:
+    - config: RH_HAL_GPIO
+      sources:
+        - src/hal/esp_gpio.c
+    - config: RH_HAL_I2C
+      sources:
+        - src/hal/esp_i2c.c
+    - config: RH_HAL_SPI
+      sources:
+        - src/hal/esp_spi.c
+    - config: RH_HAL_UART
+      sources:
+        - src/hal/esp_uart.c
+    - config: RH_HAL_TIMER
+      sources:
+        - src/hal/esp_timer.c
+    - config: RH_HAL_RS485
+      sources:
+        - src/hal/esp_rs485.c
+
+  sources:
+    - src/platform/esp_console.c
+    - src/platform/esp_fault.c
+    - src/platform/esp_platform.c
+    - src/platform/esp_tick.c
+
+depends:
+  - name: robohub-common
+    type: c
+    path: /home/miraur/projects/robohub-common
+    git: https://github.com/RoboHubPlatform/robohub-common
+    branch: main
+
+config:
+  dialect: linux
+  kconfig_fragments:
+    - Kconfig
+
+exports:
+  cmake:
+    target: "robohub-esp32"
+    include_dirs:
+      - include
+      - include/robohub
+      - include/robohub/hal
+      - include/robohub/platform
+      - include/robohub/drivers
+    link_libraries:
+      - rho::robohub-common
+
+testing:
+  host_tests:
+    enabled: true
+    target_constraint: "native"
+
+package:
+  kind: library
+  binary: false
+
+metadata:
+  tags:
+    - platform
+    - esp32
+    - xtensa
+    - espressif
+    - robohub
+  stability: experimental
+  visibility: public

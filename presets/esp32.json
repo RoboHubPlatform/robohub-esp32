@@ -1,0 +1,13 @@
+{
+  "name": "esp32",
+  "family": "esp32",
+  "core": "lx6",
+  "target": "esp32",
+  "dependencies": [
+    {
+      "name": "esp-idf",
+      "git": "https://github.com/espressif/esp-idf.git",
+      "branch": "master"
+    }
+  ]
+}

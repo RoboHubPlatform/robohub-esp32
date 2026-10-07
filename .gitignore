@@ -1,0 +1,59 @@
+# CMake build output, wherever it is. An example builds under its own directory,
+# so a rule anchored at the root would leave every example's output tracked.
+build/
+build-*/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+Makefile
+
+# Compiled objects and images
+*.o
+*.a
+*.elf
+*.bin
+*.hex
+*.uf2
+*.map
+
+# Generated configuration and staging output
+/generated/
+/generated-*/
+/stage/
+
+# Python caches: ESP-IDF's build scripts and component manager are Python.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Test and coverage output
+Testing/
+coverage/
+*.gcda
+*.gcno
+*.gcov
+
+# Local IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# The vendored ESP-IDF. It is a repository of its own, fetched beside this
+# platform, and nothing in it is written here. Anchored to the root on purpose:
+# an unanchored `vendor/` matches at any depth and would swallow a header
+# directory a build cannot compile without.
+/vendor/*
+
+# Each example is a project in its own right and fetches its own vendor tree, so
+# it has one of those too. Named rather than covered by an unanchored `vendor/`,
+# for the same reason as the rule above.
+examples/*/*/vendor/
+
+# The resolved dependency record an example build writes beside its sources. It
+# pins the revision of the tree it is committed in and carries this machine's
+# absolute paths, so it describes one checkout and is not something to hand to
+# another.
+examples/*/*/rho.lock

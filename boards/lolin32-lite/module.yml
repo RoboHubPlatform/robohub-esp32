@@ -1,0 +1,107 @@
+#
+# lolin32-lite — WEMOS LOLIN32 Lite board support.
+#
+# @project RoboHub Platform
+# @license MIT
+#
+
+module:
+  name: lolin32-lite
+  type: platform-board
+  version: 0.1.0
+  description: >
+    Board support package for the WEMOS LOLIN32 Lite (ESP32-WROOM-32, 4 MB
+    flash, CH340 USB-serial).
+
+  maintainer: "Aurel Miron"
+  license: "MIT"
+  created: "2026-10-07"
+
+hardware:
+  presets: presets/
+  target: target.json
+
+vendor:
+  dir: ../../vendor
+  repos:
+    - name: esp-idf
+      path: esp-idf
+      git: https://github.com/espressif/esp-idf.git
+      branch: master
+
+build:
+  language: c
+  standard: c11
+  include_dirs:
+    - bsp/
+
+config:
+  dialect: linux
+  kconfig_fragments:
+    - Kconfig
+
+package:
+  kind: library
+  binary: false
+
+board:
+  designation: LOLIN32_LITE
+  mcu: ESP32
+  family: ESP32
+  core: LX6
+  preset: esp32
+  target: esp32
+  connectors:
+    - name: GPIO
+      pins: 1-39
+    - name: BATTERY
+    - name: USB_SERIAL
+  programmer:
+    tool: esptool
+    interface: serial
+    protocol: esp32-rom
+  flash:
+    tool: esptool
+    command: "esptool --chip esp32 write_flash @flash_args"
+  pins:
+    user_led:
+      gpio: 5
+      active_high: false
+    uart0_tx:
+      gpio: 1
+    uart0_rx:
+      gpio: 3
+    boot_button:
+      gpio: 0
+      active_high: false
+  peripherals:
+    uart:
+      - name: uart0
+        instance: uart0
+        tx: 1
+        rx: 3
+      - name: uart2
+        instance: uart2
+        tx: 17
+        rx: 16
+    i2c:
+      - name: i2c0
+        instance: i2c0
+        sda: 21
+        scl: 22
+    spi:
+      - name: spi0
+        instance: vspi
+        mosi: 23
+        miso: 19
+        sck: 18
+        csn: 5
+
+metadata:
+  tags:
+    - board
+    - esp32
+    - lolin32
+    - robohub
+  stability: experimental
+  visibility: public
