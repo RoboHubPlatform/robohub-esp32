@@ -75,28 +75,14 @@ board:
       gpio: 0
       active_high: false
   peripherals:
-    uart:
-      - name: uart0
-        instance: uart0
-        tx: 1
-        rx: 3
-      - name: uart2
-        instance: uart2
-        tx: 17
-        rx: 16
-    i2c:
-      - name: i2c0
-        instance: i2c0
-        sda: 21
-        scl: 22
-    spi:
-      - name: spi0
-        instance: vspi
-        mosi: 23
-        miso: 19
-        sck: 18
-        csn: 5
-
+    - name: uart0
+      kind: uart
+    - name: uart2
+      kind: uart
+    - name: i2c0
+      kind: i2c
+    - name: spi0
+      kind: spi
 metadata:
   tags:
     - board
