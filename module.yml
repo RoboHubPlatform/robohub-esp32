@@ -115,3 +115,11 @@ metadata:
     - robohub
   stability: experimental
   visibility: public
+
+docs:
+  title: RoboHub ESP32 Platform
+  section: platforms
+  order: "30"
+  index: docs/index.md
+  sources:
+    - docs/index.md
