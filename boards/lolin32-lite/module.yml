@@ -40,12 +40,34 @@ config:
   kconfig_fragments:
     - Kconfig
 
+# What this board can be in a deployment. It has the radio and the buses for a
+# node or a relay; the gateway role is the Linux host's.
+capabilities:
+  gateway: false
+  relay: true
+  node: true
+  edge: true
+  host: false
+  wireless: true
+  ethernet: false
+  links: "uart console usb wifi socket"
+  buses: "uart usb i2c spi onewire gpio adc pwm"
+  deploy: "flash"
+
+# How a deployment reaches this board: it is flashed, and its image is built for
+# the ARM core it carries. The target name is the board's own `module.name`.
+deployment:
+  kconfig: "CONFIG_RH_BOARD_LOLIN32_LITE=y"
+  method: "flash"
+  arch: "arm"
+
 package:
   kind: library
   binary: false
 
 board:
   designation: LOLIN32_LITE
+  summary: "A LOLIN32 Lite: ESP32 with WiFi and a CH340 serial link."
   mcu: ESP32
   family: ESP32
   core: LX6
@@ -62,7 +84,7 @@ board:
     protocol: esp32-rom
   flash:
     tool: esptool
-    command: "esptool --chip esp32 write_flash @flash_args"
+    command: "esptool --chip esp32 --port {env:ESP32_PORT:-/dev/ttyUSB0} --baud {env:ESP32_BAUD:-115200} --before {env:ESP32_BEFORE:-default-reset} --after {env:ESP32_AFTER:-hard-reset} write-flash @flash_args {binary}"
   pins:
     user_led:
       gpio: 5

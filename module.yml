@@ -11,7 +11,7 @@
 module:
   name: robohub-esp32
   type: platform
-  version: 0.1.0
+  version: 0.2.0
   description: >
     RoboHub platform for ESP32 boards. Implements the robohub-common HAL
     contracts using ESP-IDF, the way robohub-pico uses the Pico SDK.
