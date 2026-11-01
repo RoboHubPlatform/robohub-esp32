@@ -12,7 +12,7 @@
   },
   "flash": {
     "tool": "esptool",
-    "command": "esptool --chip esp32 write_flash @flash_args",
+    "command": "esptool --chip esp32 --port {env:ESP32_PORT:-/dev/ttyUSB0} --baud {env:ESP32_BAUD:-115200} --before {env:ESP32_BEFORE:-default-reset} --after {env:ESP32_AFTER:-hard-reset} write-flash @flash_args {binary}",
     "comment": "the ROM's own serial protocol over the board's USB-serial chip; the three binaries and their offsets come from what ESP-IDF built"
   }
 }

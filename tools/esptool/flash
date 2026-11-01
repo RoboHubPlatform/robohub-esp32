@@ -1,0 +1,140 @@
+#!/bin/sh
+#
+# flash — program an ESP32 board with Espressif's own flasher.
+#
+# An ESP32 image is not one file: the second-stage bootloader, the partition
+# table and the application are three binaries at three flash offsets, and the
+# offsets are decided by the partition table ESP-IDF configured. So this entry
+# point does not invent a command line. It runs the `flash_args` file the build
+# itself wrote, from the build directory the paths in it are relative to.
+#
+# The flasher is the one inside the vendored ESP-IDF's Python environment, not
+# whatever `esptool` happens to be on PATH: the environment is the one that was
+# installed for this IDF, and an unrelated copy can be a version that no longer
+# speaks the command the build wrote.
+#
+# The entry point lives at a fixed place — `tools/esptool/flash`, named after
+# the tool the board's spec declares — so rho-flash finds it on every machine.
+#
+# usage: flash <esptool arguments> <firmware>
+#
+# The firmware argument is how the position of the build tree is learned. It is
+# removed from the arguments that reach esptool, because `@flash_args` already
+# names the application image at its offset; adding it again would name it
+# twice. An ELF file is accepted as well as the application `.bin`: the ELF is
+# what a build copies to `build/output/`, and the matching ESP-IDF build is
+# found from the project's generated tree.
+#
+# @project RoboHub Platform
+# @license MIT
+#
+
+set -eu
+
+die() {
+    echo "flash: $*" >&2
+    exit 1
+}
+
+if [ "$#" -eq 0 ]; then
+    echo "flash: usage: flash <esptool arguments> <firmware>" >&2
+    exit 2
+fi
+
+# The firmware is the last argument that names an existing regular file.
+# Options and `@flash_args` do not, and neither does the serial device.
+firmware=""
+for argument in "$@"; do
+    case "$argument" in
+        -*|@*) continue ;;
+    esac
+    if [ -f "$argument" ]; then
+        firmware=$argument
+    fi
+done
+[ -n "$firmware" ] || die "no firmware was named"
+
+case "$firmware" in
+    /*) firmware_path=$firmware ;;
+    *) firmware_path=$(cd "$(dirname "$firmware")" && pwd)/$(basename "$firmware") ;;
+esac
+
+# The directory the build wrote `flash_args` and `flasher_args.json` in. Walk up
+# from the firmware first, which is the ordinary case: the application image is
+# in the build directory, and so is everything the flash needs.
+build_dir=""
+directory=$(dirname "$firmware_path")
+while :; do
+    if [ -f "$directory/flash_args" ] && [ -f "$directory/flasher_args.json" ]; then
+        build_dir=$directory
+        break
+    fi
+    parent=$(dirname "$directory")
+    [ "$parent" = "$directory" ] && break
+    directory=$parent
+done
+
+# An ELF copied to `build/output/` is not inside the framework's build tree, so
+# the build is found by the name it gave the application. Both the ELF and the
+# application `.bin` are named after the program, so the metadata says which
+# build is this program's.
+if [ -z "$build_dir" ]; then
+    program=$(basename "$firmware_path")
+    program=${program%.elf}
+    program=${program%.bin}
+    for metadata in \
+        "$PWD"/build/generated/*/build/*/flasher_args.json \
+        "$PWD"/build/generated/*/*/flasher_args.json
+    do
+        [ -f "$metadata" ] || continue
+        if grep -q "\"$program.bin\"" "$metadata" 2>/dev/null; then
+            build_dir=$(dirname "$metadata")
+            break
+        fi
+    done
+fi
+
+[ -n "$build_dir" ] || die "no ESP-IDF build with flash_args is near $firmware_path; build the project first"
+
+# The flasher: an explicit override, the environment the build used, the
+# environment the vendored IDF installed, and only then PATH.
+esptool=""
+if [ -n "${ESPTOOL:-}" ] && [ -x "$ESPTOOL" ]; then
+    esptool=$ESPTOOL
+elif [ -n "${IDF_PYTHON_ENV_PATH:-}" ] && [ -x "$IDF_PYTHON_ENV_PATH/bin/esptool" ]; then
+    esptool=$IDF_PYTHON_ENV_PATH/bin/esptool
+else
+    for candidate in \
+        "$HOME"/.espressif/python_env/idf*_py*_env/bin/esptool \
+        "$HOME"/.espressif/python_env/idf*_py*_env/bin/esptool.py
+    do
+        if [ -x "$candidate" ]; then
+            esptool=$candidate
+            break
+        fi
+    done
+fi
+if [ -z "$esptool" ]; then
+    esptool=$(command -v esptool 2>/dev/null || true)
+fi
+if [ -z "$esptool" ]; then
+    esptool=$(command -v esptool.py 2>/dev/null || true)
+fi
+[ -n "$esptool" ] || die "esptool was not found; run the vendored IDF's install.sh esp32, or set ESPTOOL to the program"
+
+# Remove the firmware from the arguments. Positional parameters are rebuilt
+# rather than filtered into a string, so an argument with a space in it survives
+# as one argument.
+count=$#
+index=0
+while [ "$index" -lt "$count" ]; do
+    argument=$1
+    shift
+    index=$((index + 1))
+    [ "$argument" = "$firmware" ] && continue
+    set -- "$@" "$argument"
+done
+
+echo "flash: $(basename "$esptool") from $build_dir" >&2
+cd "$build_dir"
+exec "$esptool" "$@"

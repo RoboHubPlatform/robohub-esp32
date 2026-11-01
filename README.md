@@ -104,6 +104,45 @@ vendor/esp-idf/install.sh esp32
 in a sibling checkout or at `/home/miraur/projects/robohub-common`; otherwise
 set `ROBOHUB_COMMON_DIR` to point at the checkout.
 
+## Flashing
+
+An ESP32 image is three binaries at three offsets, so the platform's
+`tools/esptool/flash` entry point does not invent a command line: it runs the
+`flash_args` file the ESP-IDF build wrote, from the build directory those paths
+are relative to. The flasher is the `esptool` inside the IDF's own Python
+environment.
+
+```sh
+rho flash -target lolin32-lite examples/c/hello_world/build/output/hello_world.elf
+```
+
+The ELF that a build copies to `build/output/` is accepted as well as the
+application `.bin` in the generated tree; the build that wrote it is found by
+the program's name. `ESP32_PORT` chooses the serial line (default
+`/dev/ttyUSB0`), and `ESP32_BAUD` the rate (default 115200):
+
+```sh
+ESP32_PORT=/dev/ttyUSB1 rho flash -target lolin32-lite build/output/hello_world.elf
+```
+
+The ROM's download handshake runs at 115200 baud, so `ESP32_BAUD` cannot go
+below that for the initial sync; esptool uses the lower of the ROM rate and the
+requested rate, and a lower value simply stops it hearing the chip at all.
+
+The CH340's DTR/RTS lines normally enter download mode on their own. A board
+whose reset circuit does not can be put in download mode by hand — hold
+`GPIO0` low, reset the part, then release it — and flashed without esptool
+resetting it again:
+
+```sh
+ESP32_BEFORE=no-reset rho flash -target lolin32-lite build/output/hello_world.elf
+```
+
+If esptool reports that it detected download mode but got no sync reply, the
+chip is in the bootloader but its `UART0_RX` (GPIO3) is not receiving: check
+the TX line from the USB-serial chip to that pin, the common ground, and the
+supply. The boot log arriving means the return path is already working.
+
 ## Configuration (Kconfig)
 
 HAL implementations are selected at build time. The platform's own symbols are
@@ -153,3 +192,7 @@ MIT.
 ## Maintainer
 
 Aurel Miron — RoboHub Platform Architect, Cluj-Napoca, Romania.
+
+## Release history
+
+[CHANGELOG.md](CHANGELOG.md) — the changes in 0.2.0 and earlier releases.
