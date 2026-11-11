@@ -7,7 +7,9 @@
 
 module:
   name: lolin32-lite
-  id: robohub-esp32.boards.lolin32-lite
+  id: robohub.platform-board.lolin32-lite
+  previous_ids:
+    - robohub-esp32.boards.lolin32-lite
   type: platform-board
   version: 0.1.0
   description: >

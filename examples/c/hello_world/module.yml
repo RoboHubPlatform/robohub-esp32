@@ -9,7 +9,9 @@
 
 module:
   name: hello-world
-  id: robohub-esp32.examples.c.hello_world
+  id: robohub.example.hello-world-esp32-c
+  previous_ids:
+    - robohub-esp32.examples.c.hello_world
   type: module
   version: 0.1.0
   description: >
