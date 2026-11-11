@@ -74,15 +74,6 @@ rho build -target lolin32-lite examples/c/hello_world
 rho test                        # the tests this project declares
 ```
 
-Or with CMake on its own, which is what a person does when they are not going to
-use the toolchain:
-
-```sh
-cmake -S . -B build
-cmake --build build
-ctest --test-dir build
-```
-
 A bare-metal ESP32 build is ESP-IDF's build. The board's prelude
 (`boards/lolin32-lite/idf.cmake`) locates the framework before `project()` and
 hands the build to it. It looks for ESP-IDF in this order:
@@ -174,12 +165,8 @@ program that does not enable an interface does not carry its implementation.
 ## Tests
 
 The host tests are registered by CMake and run under CTest when the project is
-built on a host (`RHO_BUILD_HOST_TESTS`, and not a bare-metal target):
-
-```sh
-cmake -S . -B build -DRHO_BUILD_HOST_TESTS=ON
-ctest --test-dir build
-```
+built on a host (`RHO_BUILD_HOST_TESTS`, and not a bare-metal target). They are run
+with `rho test`, through a `ctest` suite declared in `tests/tests.yml`.
 
 A host test exercises the parts of the platform that do not need a peripheral —
 the error mapping and the registration the BSP performs — so it runs without a
