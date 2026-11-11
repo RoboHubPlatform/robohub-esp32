@@ -10,6 +10,7 @@
 
 module:
   name: robohub-esp32
+  id: robohub-esp32
   type: platform
   version: 0.2.0
   description: >
