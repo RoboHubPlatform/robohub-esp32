@@ -32,7 +32,7 @@ build:
 depends:
   - name: robohub-esp32
     type: c
-    path: ${RHO_WORKSPACE}/robohub-esp32
+    path: ${ROBOHUB_WORKSPACE}/robohub-esp32
     git: https://github.com/RoboHubPlatform/robohub-esp32
     branch: main
 

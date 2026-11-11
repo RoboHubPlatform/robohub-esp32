@@ -101,7 +101,7 @@ vendor/esp-idf/install.sh esp32
 ```
 
 `robohub-common`'s headers are needed to compile anything here. CMake finds them
-in a sibling checkout or at `${RHO_WORKSPACE}/robohub-common`; otherwise
+in a sibling checkout; otherwise
 set `ROBOHUB_COMMON_DIR` to point at the checkout.
 
 ## Flashing
