@@ -168,9 +168,11 @@ The host tests are registered by CMake and run under CTest when the project is
 built on a host (`RHO_BUILD_HOST_TESTS`, and not a bare-metal target). They are run
 with `rho test`, through a `ctest` suite declared in `tests/tests.yml`.
 
-A host test exercises the parts of the platform that do not need a peripheral —
-the error mapping and the registration the BSP performs — so it runs without a
-board attached. Tests that need the silicon are declared rather than run.
+A host test exercises what a host can check without a board: the error codes every
+layer of the platform agrees on, through `robohub-common`. The platform library
+itself compiles against ESP-IDF's headers and a generated `sdkconfig.h`, which
+exist when ESP-IDF configures a build for a board, so a hosted build does not build
+it. Tests that need the silicon are declared rather than run.
 
 ## Licence
 

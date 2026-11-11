@@ -1,0 +1,8 @@
+# robohub-esp32's host tests, declared: the parts of the platform that need no
+# peripheral, built and run on the machine doing the build by the ctest kind.
+name: robohub-esp32
+suites:
+  - name: unit
+    kind: ctest
+    tags: [unit, host]
+    ctest: {}

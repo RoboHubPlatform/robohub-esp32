@@ -183,8 +183,14 @@ target_compile_features(robohub-esp32 PUBLIC c_std_11)
 if(ROBOHUB_ESP_HOSTED)
   message(STATUS "[robohub-esp32] registering host unit tests")
   enable_testing()
+  # The platform library compiles against ESP-IDF's own headers and a generated
+  # sdkconfig.h, which exist when ESP-IDF configures a build for a board and not on
+  # a host that is only running tests. So a hosted build does not build it: the
+  # tests link robohub-common, which is the contract this platform implements and
+  # the part of it a host can check.
+  set_target_properties(robohub-esp32 PROPERTIES EXCLUDE_FROM_ALL TRUE)
   add_executable(robohub-esp32-test-error tests/test_error.c)
-  target_link_libraries(robohub-esp32-test-error PRIVATE robohub-esp32)
+  target_link_libraries(robohub-esp32-test-error PRIVATE robohub-common)
   add_test(NAME robohub-esp32-test-error COMMAND robohub-esp32-test-error)
 endif()
 
