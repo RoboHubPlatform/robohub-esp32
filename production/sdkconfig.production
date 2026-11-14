@@ -1,0 +1,47 @@
+# sdkconfig.production — the ESP32 production preset (ESP-IDF sdkconfig defaults).
+#
+# Applied only when a project sets CONFIG_RH_PRODUCTION=y; boards/lolin32-lite/
+# idf.cmake then adds this file (and a generated fragment naming the signing key)
+# to SDKCONFIG_DEFAULTS, with a sdkconfig file of its own in the build tree so
+# a tree configured before for a plain image cannot keep that configuration.
+#
+# NOTHING here is burned at build time. The eFuses are burned by the bootloader
+# the first time the production image boots, which is why `rho flash
+# --production` lists those steps and asks for the board's name first.
+#
+# @project RoboHub Platform
+# @license MIT
+
+# Secure boot v2 (RSA-3072). On the original ESP32 it needs chip revision v3.0
+# or later; an older chip refuses to build for it rather than half-enabling it.
+CONFIG_ESP32_REV_MIN_3=y
+CONFIG_SECURE_BOOT=y
+CONFIG_SECURE_BOOT_V2_ENABLED=y
+CONFIG_SECURE_SIGNED_APPS_RSA_SCHEME=y
+CONFIG_SECURE_SIGNED_ON_BOOT=y
+CONFIG_SECURE_SIGNED_ON_UPDATE=y
+CONFIG_SECURE_BOOT_BUILD_SIGNED_BINARIES=y
+# CONFIG_SECURE_BOOT_SIGNING_KEY is written by idf.cmake from
+# RH_SECURE_BOOT_SIGNING_KEY, so the key never sits in a tracked file.
+
+# Flash encryption, release mode: plaintext reads and serial re-flashing of
+# plaintext images are disabled for good.
+CONFIG_SECURE_FLASH_ENC_ENABLED=y
+CONFIG_SECURE_FLASH_ENCRYPTION_MODE_RELEASE=y
+
+# NVS encryption, its keys kept in the encrypted `nvs_keys` partition. This is
+# what protects the device keystore (namespace rh_keys); it needs flash
+# encryption, which is why the two only come together.
+CONFIG_NVS_ENCRYPTION=y
+CONFIG_NVS_SEC_KEY_PROTECT_USING_FLASH_ENC=y
+
+# A bootloader with secure boot and flash encryption is larger than the default
+# 0x8000 partition-table offset allows.
+# The table itself (partitions.production.csv, beside this file) is named by
+# absolute path in the fragment idf.cmake generates.
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_OFFSET=0x10000
+
+# No console log of secrets-adjacent detail in a production image.
+CONFIG_BOOTLOADER_LOG_LEVEL_WARN=y
+CONFIG_LOG_DEFAULT_LEVEL_WARN=y

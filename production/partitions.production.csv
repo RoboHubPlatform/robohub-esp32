@@ -1,0 +1,8 @@
+# The ESP32 production partition table: the default single-app layout moved past
+# the larger secure-boot bootloader, plus the encrypted `nvs_keys` partition
+# that holds the NVS encryption keys.
+# Name,     Type, SubType,  Offset,   Size,    Flags
+nvs,        data, nvs,      0x11000,  0x6000,
+nvs_keys,   data, nvs_keys, 0x17000,  0x1000,  encrypted
+phy_init,   data, phy,      0x18000,  0x1000,
+factory,    app,  factory,  0x20000,  0x1E0000,

@@ -1,0 +1,43 @@
+{
+  "name": "esp32 production: secure boot v2, flash encryption (release), NVS encryption",
+  "summary": "The image is signed and its bootloader checks the signature; flash is encrypted with a key that never leaves the chip; NVS (and with it the device keystore, namespace rh_keys) is encrypted. Needs an ESP32 of chip revision v3.0 or later.",
+  "build": "CONFIG_RH_PRODUCTION=y in the project's configuration, RH_SECURE_BOOT_SIGNING_KEY naming the RSA-3072 PEM key. Keep that key: without it this board never accepts another image.",
+  "steps": [
+    {
+      "description": "write the signed secure-boot bootloader at 0x1000 (an ESP-IDF secure-boot build leaves it out of the ordinary flash), without resetting the board, so the first boot happens only once the application is written too",
+      "irreversible": false,
+      "when": "before-flash",
+      "command": "{platform}/tools/esptool/flash --chip esp32 --port {env:ESP32_PORT:-/dev/ttyUSB0} --baud {env:ESP32_BAUD:-115200} --before {env:ESP32_BEFORE:-default-reset} --after no-reset write-flash @flash_bootloader_args {binary}"
+    },
+    {
+      "description": "the bootloader generates the flash encryption key in eFuse BLOCK1 and read- and write-protects it",
+      "irreversible": true,
+      "when": "first-boot"
+    },
+    {
+      "description": "it burns FLASH_CRYPT_CNT and FLASH_CRYPT_CONFIG and encrypts the bootloader, partition table, application and the encrypted partitions in place",
+      "irreversible": true,
+      "when": "first-boot"
+    },
+    {
+      "description": "release mode: it burns DISABLE_DL_ENCRYPT, DISABLE_DL_DECRYPT and DISABLE_DL_CACHE, so the serial bootloader can no longer write or read plaintext flash",
+      "irreversible": true,
+      "when": "first-boot"
+    },
+    {
+      "description": "secure boot v2: it burns the SHA-256 digest of the signing public key into eFuse BLOCK2 and sets ABS_DONE_1; from then on only images signed with that key boot",
+      "irreversible": true,
+      "when": "first-boot"
+    },
+    {
+      "description": "it disables JTAG (JTAG_DISABLE) and the ROM BASIC console",
+      "irreversible": true,
+      "when": "first-boot"
+    }
+  ],
+  "notes": [
+    "Nothing is burned by this command itself: the image is written normally (bootloader, partition table, application) and the eFuses are burned by that image's bootloader at first boot. Do not power the board off during that first boot.",
+    "Later updates must be signed with the same key and are delivered over the air (or with espsecure-encrypted images); plaintext serial flashing stops working.",
+    "Read the chip's state beforehand with: espefuse.py --port <port> summary (read-only)."
+  ]
+}

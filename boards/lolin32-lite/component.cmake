@@ -42,10 +42,15 @@ idf_component_register(
 # in the common library would satisfy the reference first, the linker would
 # never reach into the platform archive for the strong definition, and the
 # program would link and run against the no-op default — the board would
-# register nothing, and say nothing about it.
+# register nothing, and say nothing about it. The keystore's two functions are
+# named for the same reason: the weak defaults in the common library answer "no
+# store", and a board that has NVS should never quietly link those instead.
 target_link_libraries(${COMPONENT_LIB} PRIVATE
     -Wl,--start-group
     -Wl,--undefined=robohub_board_register
+    -Wl,--undefined=rh_keystore_load
+    -Wl,--undefined=rh_keystore_store
+    -Wl,--undefined=rh_keystore_platform
     robohub-esp32
     robohub-common
     -Wl,--end-group

@@ -100,6 +100,7 @@ set(ROBOHUB_ESP_SOURCES
     src/platform/esp_platform.c
     src/platform/esp_tick.c
     src/platform/esp_nonce.c
+    src/platform/esp_keystore.c
 )
 
 if(RHO_ROBO_CONFIG AND EXISTS "${RHO_ROBO_CONFIG}")
