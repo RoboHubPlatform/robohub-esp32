@@ -174,9 +174,9 @@ itself compiles against ESP-IDF's headers and a generated `sdkconfig.h`, which
 exist when ESP-IDF configures a build for a board, so a hosted build does not build
 it. Tests that need the silicon are declared rather than run.
 
-## Licence
+## License
 
-MIT.
+MIT. See [LICENSE](LICENSE).
 
 ## Maintainer
 
