@@ -1,7 +1,5 @@
 # RoboHub ESP32 Platform
 
-**Version:** 0.2.0
-
 The ESP32 platform for the RoboHub ecosystem: the interfaces declared by
 `robohub-common`, implemented on ESP32 microcontrollers, with board support
 packages for the development boards.
