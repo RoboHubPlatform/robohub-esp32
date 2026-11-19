@@ -57,7 +57,7 @@ set(CMAKE_TOOLCHAIN_FILE "${IDF_PATH}/tools/cmake/toolchain-esp32.cmake" CACHE F
 # Nothing is burned by building: secure boot v2, flash encryption (release) and
 # NVS encryption are burned into eFuses by the image's bootloader at its first
 # boot, and `rho flash --production` lists those steps and asks for the board's
-# name before writing the image. See production/esp32.json and docs/index.md.
+# name before writing the image. See production/esp32.json and docs/doc/index.md.
 #
 # The resolved configuration is `<build>/config-check/.config`, two levels above
 # the generated project; a value passed with -DRHO_CONFIG_RH_PRODUCTION wins.

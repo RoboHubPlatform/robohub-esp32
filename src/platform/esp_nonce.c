@@ -13,6 +13,7 @@
 
 #include "esp_random.h"
 
+// @req ESP-0005
 int robohub_platform_nonce(rh_u8* out, rh_size length)
 {
     esp_fill_random(out, (size_t)length);

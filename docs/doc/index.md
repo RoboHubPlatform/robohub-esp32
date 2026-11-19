@@ -49,17 +49,26 @@ capabilities:
   host: false
   wireless: true
   links: "uart console usb wifi socket"
-  buses: "uart usb i2c spi onewire gpio adc pwm"
+  buses: "uart usb i2c spi gpio"
 
 deployment:
   method: "flash"
-  arch: "arm"
+  arch: "xtensa"
   kconfig: "CONFIG_RH_BOARD_LOLIN32_LITE=y"
 ```
 
 The keeper's Mesh planner uses these to offer the board as a node or relay, and
 the ESP32's serial console is a link it can serve. The ESP32 is not offered as a
 host gateway; that role is the Linux board's.
+
+`buses` lists what the platform has a HAL for — UART, I2C, SPI and GPIO (plus
+the USB serial bridge) — and Mesh offers a driver only when the bus it needs is
+listed. The ESP32 has 1-Wire-capable pins, ADCs and LEDC PWM, but robohub-esp32
+does not implement the `onewire`, `adc` or `pwm` contracts yet, so a DS18B20, an
+analog input or a PWM output is not offered on it. `arch` is `xtensa`: the
+ESP32's LX6 core, the architecture its target spec (`targets/esp32.json`)
+inherits. Mesh reads `deployment.arch` only to cross-build a gateway (it is the
+Go `GOARCH`), and the ESP32 is never a gateway, so nothing builds from it.
 
 ## The device keystore
 

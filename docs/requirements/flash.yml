@@ -1,0 +1,37 @@
+# Flashing an ESP32 with the platform's esptool entry (tools/esptool/flash,
+# boards/lolin32-lite/target.json). Proposed until the maintainer approves them.
+level: SUB
+prefix: ESP-FLASH
+title: ESP32 flashing
+requirements:
+  - id: ESP-FLASH-0001
+    title: The build tree is found from the firmware
+    statement: >
+      The flash entry shall find the ESP-IDF build directory holding
+      `flash_args` and `flasher_args.json` by walking up from the firmware it is
+      given, or, for an ELF copied to `build/output/`, by the program's name in
+      the project's generated build, and shall exit 1 asking for a build when
+      there is none.
+    rationale: The ELF a build copies to its output is not inside the framework's tree, and flashing an unbuilt project must say so.
+    satisfies: [ESP-0003]
+    status: proposed
+    verification: demonstration
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [flash]
+
+  - id: ESP-FLASH-0002
+    title: The flasher is the IDF's own
+    statement: >
+      The flash entry shall run esptool from ESPTOOL, else IDF_PYTHON_ENV_PATH,
+      else the vendored IDF's Python environment under ~/.espressif, and only
+      then from PATH, from the build directory, with the firmware removed from
+      the arguments because `@flash_args` already names it; it shall exit 1
+      naming the IDF's install.sh when none is found.
+    rationale: An unrelated esptool can be a version that no longer speaks the command the build wrote.
+    satisfies: [ESP-0003]
+    status: proposed
+    verification: demonstration
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [flash, esptool]

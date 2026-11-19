@@ -1,0 +1,58 @@
+# The production preset: secure boot v2, flash encryption and NVS encryption,
+# and the plan `rho flash --production` follows (production/,
+# boards/lolin32-lite/idf.cmake). Proposed until the maintainer approves them.
+level: SUB
+prefix: ESP-PROD
+title: ESP32 production
+requirements:
+  - id: ESP-PROD-0001
+    title: The production preset is applied whole, with the key from the environment
+    statement: >
+      With CONFIG_RH_PRODUCTION=y (off by default) the build shall configure
+      ESP-IDF from `production/sdkconfig.production` — secure boot v2 with
+      RSA-3072, chip revision 3.0 or later, flash encryption in release mode, NVS
+      encryption with its keys protected by flash encryption, warning-level logs
+      — into a sdkconfig of its own rewritten at every configure, take the
+      signing key path from RH_SECURE_BOOT_SIGNING_KEY into a generated fragment,
+      and stop with a message when that key is not set.
+    rationale: A tree configured before for a plain image must not keep plain settings, and the key must never sit in a tracked file.
+    satisfies: [ESP-0006]
+    decided_by: [ADR-0002]
+    status: proposed
+    verification: inspection
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [production, secure-boot, flash-encryption]
+
+  - id: ESP-PROD-0002
+    title: The production partition table leaves room and encrypts the NVS keys
+    statement: >
+      A production build shall use `production/partitions.production.csv`,
+      with the table at 0x10000: nvs at 0x11000 (0x6000), an encrypted nvs_keys
+      partition at 0x17000 (0x1000), phy_init at 0x18000 and the factory
+      application at 0x20000 (0x1E0000).
+    rationale: The secure-boot bootloader does not fit before the default 0x8000 offset, and NVS encryption keeps its keys in an encrypted partition.
+    satisfies: [ESP-0006, ESP-0004]
+    decided_by: [ADR-0002]
+    status: proposed
+    verification: inspection
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [production, partitions]
+
+  - id: ESP-PROD-0003
+    title: The plan writes without resetting and lists the first-boot eFuses
+    statement: >
+      `production/esp32.json` shall write the signed bootloader at 0x1000 with
+      `--after no-reset` before the image, and list as irreversible first-boot
+      steps the flash encryption key in BLOCK1, FLASH_CRYPT_CNT and
+      FLASH_CRYPT_CONFIG, the download-mode encryption and cache disables, the
+      secure boot key digest in BLOCK2 with ABS_DONE_1, and JTAG_DISABLE.
+    rationale: Nothing is burned by the command itself; the person must know what the first boot will burn before typing the board's name.
+    satisfies: [ESP-0006]
+    decided_by: [ADR-0002]
+    status: proposed
+    verification: inspection
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [production, efuse]

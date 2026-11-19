@@ -35,6 +35,7 @@ static RoboHubTimer system_timer = {
     .delay_us = esp_timer_delay_us,
 };
 
+// @req ESP-0001
 void bsp_register_hals(void)
 {
     robohub_register_gpio("user_led", &led_gpio);

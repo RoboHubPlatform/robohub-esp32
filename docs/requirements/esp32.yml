@@ -1,0 +1,103 @@
+# What the ESP32 platform gives RoboHub: the robohub-common contracts through
+# ESP-IDF, the LOLIN32 Lite's board facts, flashing with esptool, the device
+# keystore in NVS, the nonce source and the production preset. Written in the R5
+# backfill from the documentation, the changelog, the code and an example build;
+# proposed until the maintainer approves them. The subsystems are in flash.yml,
+# keystore.yml and production.yml.
+level: NODE
+prefix: ESP
+title: ESP32 platform
+requirements:
+  - id: ESP-0001
+    title: The ESP32 answers the HAL contracts through ESP-IDF
+    statement: >
+      The platform shall implement the robohub-common contracts for GPIO, I2C,
+      SPI, UART, timer and RS485 with ESP-IDF, each compiled only when its
+      RH_HAL_<NAME> symbol is set, and the LOLIN32 Lite shall register
+      `user_led` (GPIO5, lit when low) and `system_timer`.
+    rationale: A device program is written against the contracts once; the platform is what makes it run on an ESP32.
+    satisfies: [SYS-0046]
+    status: proposed
+    verification: demonstration
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [hal]
+
+  - id: ESP-0002
+    title: The LOLIN32 Lite declares the facts a build and a planner read
+    statement: >
+      The lolin32-lite board shall declare the ESP32 (LX6) with the compiler
+      xtensa-esp32-elf-gcc and the ESP-IDF prelude, its LED and UART0 pins, its
+      esptool flash command, and the roles relay, node and edge — not gateway,
+      not host — with the links `uart console usb wifi socket`, only the buses
+      the platform has a HAL for (`uart usb i2c spi gpio`), and a flash
+      deployment for the `xtensa` arch selected by
+      CONFIG_RH_BOARD_LOLIN32_LITE=y.
+    rationale: The keeper's Mesh planner offers the board as a node or relay, never as a host gateway, from its manifest alone.
+    satisfies: [SYS-0042]
+    status: proposed
+    verification: inspection
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [board, planner]
+
+  - id: ESP-0003
+    title: An ESP32 is flashed from the build's own offsets
+    statement: >
+      `rho flash -target lolin32-lite <elf>` shall write the bootloader, the
+      partition table and the application at the offsets the ESP-IDF build
+      recorded in `flash_args`, over the serial line named by ESP32_PORT
+      (/dev/ttyUSB0 by default) at ESP32_BAUD (115200), resetting into download
+      mode unless ESP32_BEFORE says otherwise.
+    rationale: Three binaries at offsets the partition table decided cannot be written from a command line the toolchain invents.
+    satisfies: [SYS-0049]
+    status: proposed
+    verification: demonstration
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [flash]
+
+  - id: ESP-0004
+    title: A rotated board key is kept in NVS
+    statement: >
+      The platform shall keep the rotated device key of robohub/keystore.h in
+      NVS, so that a key stored after a rotation is the key loaded after the next
+      reset, and every program linked with the platform shall use this store
+      rather than robohub-common's "no store" default.
+    rationale: A key rotated without a cable must still be the key after a power cut.
+    satisfies: [SYS-0022]
+    decided_by: [ADR-0001]
+    status: proposed
+    verification: inspection
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [keystore, key-rotation]
+
+  - id: ESP-0005
+    title: Nonces come from the hardware random generator
+    statement: >
+      robohub_platform_nonce on the ESP32 shall fill the buffer with
+      esp_fill_random from the chip's RNG peripheral.
+    rationale: A session's freshness rests on a nonce that never repeats, also across a reset.
+    satisfies: [SYS-0020, SYS-0023]
+    status: proposed
+    verification: inspection
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [security, nonce]
+
+  - id: ESP-0006
+    title: A production image is signed, encrypted and burns its eFuses only when confirmed
+    statement: >
+      A build with CONFIG_RH_PRODUCTION=y shall produce a secure-boot-v2 signed
+      image with flash encryption in release mode and NVS encryption, and the
+      production flash shall list every eFuse that image's first boot burns and
+      write it only through `rho flash --production` after the board's name is
+      typed.
+    rationale: The keystore in NVS is plain text on flash without encryption; burning eFuses by accident must not be possible.
+    satisfies: [SYS-0043, SYS-0044]
+    status: proposed
+    verification: inspection
+    owner: maintainer
+    changed: 2026-11-19
+    tags: [production, security, secure-boot]

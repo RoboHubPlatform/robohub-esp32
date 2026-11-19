@@ -44,7 +44,10 @@ config:
     - Kconfig
 
 # What this board can be in a deployment. It has the radio and the buses for a
-# node or a relay; the gateway role is the Linux host's.
+# node or a relay; the gateway role is the Linux host's. `buses` names only what
+# the platform has a HAL for (src/hal): the chip has 1-Wire-capable pins, ADCs
+# and LEDC PWM, but until robohub-esp32 implements those contracts Mesh must not
+# offer a driver that needs them.
 capabilities:
   gateway: false
   relay: true
@@ -54,15 +57,18 @@ capabilities:
   wireless: true
   ethernet: false
   links: "uart console usb wifi socket"
-  buses: "uart usb i2c spi onewire gpio adc pwm"
+  buses: "uart usb i2c spi gpio"
   deploy: "flash"
 
 # How a deployment reaches this board: it is flashed, and its image is built for
-# the ARM core it carries. The target name is the board's own `module.name`.
+# the Xtensa LX6 core it carries (the `xtensa` arch of targets/). Mesh reads
+# `arch` only for a board it deploys a gateway to, as the GOARCH of that build;
+# this board is never one, so the value is a fact, not a build input. The target
+# name is the board's own `module.name`.
 deployment:
   kconfig: "CONFIG_RH_BOARD_LOLIN32_LITE=y"
   method: "flash"
-  arch: "arm"
+  arch: "xtensa"
 
 package:
   kind: library

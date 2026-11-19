@@ -14,7 +14,7 @@ module:
   previous_ids:
     - robohub-esp32
   type: platform
-  version: 0.3.0
+  version: 0.3.1
   description: >
     RoboHub platform for ESP32 boards. Implements the robohub-common HAL
     contracts using ESP-IDF, the way robohub-pico uses the Pico SDK.
@@ -24,6 +24,10 @@ module:
   created: "2026-10-07"
 
 platform: robohub
+
+# The platform's requirements are numbered ESP-NNNN (and ESP-<AREA>-NNNN for its
+# subsystems) and serve the system requirements robohub holds.
+requirements: { prefix: ESP, parent: robohub }
 
 hardware:
   boards: boards/
@@ -125,6 +129,6 @@ docs:
   title: RoboHub ESP32 Platform
   section: platforms
   order: "30"
-  index: docs/index.md
+  index: docs/doc/index.md
   sources:
-    - docs/index.md
+    - docs/doc/index.md

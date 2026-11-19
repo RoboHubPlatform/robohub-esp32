@@ -26,6 +26,7 @@
 
 /* Named on the link (--undefined) so this object, and the strong functions
  * below, are always taken from the platform's archive; see keystore_core.h. */
+// @req ESP-KEY-0003
 const char rh_keystore_platform[] = "esp32";
 
 #ifdef RH_ESP_IDF
@@ -37,6 +38,7 @@ const char rh_keystore_platform[] = "esp32";
 
 static const char *const slot_names[RH_KEYSTORE_SLOTS] = { "a", "b" };
 
+// @req ESP-KEY-0002
 static int esp_open(nvs_open_mode_t mode, nvs_handle_t *handle)
 {
     esp_err_t err = nvs_open(RH_KEYSTORE_NAMESPACE, mode, handle);
@@ -49,6 +51,7 @@ static int esp_open(nvs_open_mode_t mode, nvs_handle_t *handle)
     return err == ESP_OK ? 0 : -1;
 }
 
+// @req ESP-KEY-0001
 static int esp_read(void *ctx, unsigned slot, uint8_t *buf, size_t len)
 {
     (void)ctx;
@@ -62,6 +65,7 @@ static int esp_read(void *ctx, unsigned slot, uint8_t *buf, size_t len)
     return (err == ESP_OK && size == len) ? 0 : -1;
 }
 
+// @req ESP-KEY-0001
 static int esp_erase(void *ctx, unsigned slot)
 {
     (void)ctx;
@@ -80,6 +84,7 @@ static int esp_erase(void *ctx, unsigned slot)
     return err == ESP_OK ? 0 : -1;
 }
 
+// @req ESP-KEY-0001
 static int esp_write(void *ctx, unsigned slot, const uint8_t *buf, size_t len)
 {
     (void)ctx;
@@ -97,11 +102,13 @@ static int esp_write(void *ctx, unsigned slot, const uint8_t *buf, size_t len)
 
 static const rh_keystore_backend_t esp_backend = { 0, esp_read, esp_erase, esp_write };
 
+// @req ESP-0004
 int rh_keystore_load(rh_key_t *out)
 {
     return rh_keystore_core_load(&esp_backend, out);
 }
 
+// @req ESP-0004
 int rh_keystore_store(const rh_key_t *key)
 {
     return rh_keystore_core_store(&esp_backend, key);
