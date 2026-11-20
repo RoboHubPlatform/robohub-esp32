@@ -14,7 +14,7 @@ module:
   previous_ids:
     - robohub-esp32
   type: platform
-  version: 0.3.1
+  version: 0.4.0
   description: >
     RoboHub platform for ESP32 boards. Implements the robohub-common HAL
     contracts using ESP-IDF, the way robohub-pico uses the Pico SDK.
@@ -81,6 +81,7 @@ build:
     - src/platform/esp_tick.c
     - src/platform/esp_nonce.c
     - src/platform/esp_keystore.c
+    - src/platform/esp_health.c
 
 depends:
   - name: robohub-common
