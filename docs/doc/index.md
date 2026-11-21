@@ -36,6 +36,13 @@ that must be put in download mode by hand is flashed with
 `examples/rho/hello_world` is that program in Rho, written against the
 contracts and nothing else.
 
+`examples/c/health_check` walks a board through a watchdog reset, a recorded
+panic and a fed watchdog, with a key held in NVS across each reset, and prints
+`health-check: passed` (ESP-0007, ESP-0011). `python3
+examples/c/health_check/health_check.py` builds it, flashes it and reads the
+console (`ESP32_PORT`, `/dev/ttyUSB0` by default). The check's keys replace a key
+the board was rotated to, so flash the board from Mesh afterwards.
+
 ## Deployment metadata
 
 The LOLIN32 Lite's manifest says what a deployment may make of it:
@@ -112,6 +119,31 @@ version are one NVS blob (namespace `rh_update`). The build copies the
 application image, `<program>.bin`, beside the ELF in the output folder; that
 file is what an update sends. A production build keeps its own table and is
 flashed only.
+
+## The network
+
+`src/platform/esp_net.c` is robohub-common's network contract (`robohub/net.h`,
+ESP-0010):
+
+- **Wi-Fi.** The board joins a network as a station through esp_netif and
+  esp_wifi. The first join brings the stack up once (NVS, which is never erased
+  here because it holds the keystore; esp_netif; the event loop; the station),
+  and the join is polled, with the watchdog fed, until the station has an
+  address or the timeout passes.
+- **Sockets.** TCP and UDP sockets are lwIP's BSD sockets, non-blocking. A
+  receive waits at most its timeout with `select`, and a connect waits at most
+  5 s with the watchdog fed. Hosts are numeric, as on the Pico.
+
+The library links ESP-IDF's `esp_wifi`, `esp_netif`, `lwip`, `esp_event`,
+`nvs_flash`, `esp_timer` and `freertos` components privately, which also brings
+their include directories. The vendored SMP FreeRTOS kernel's headers are left
+out of the include globs, because this board's configuration uses the other
+kernel.
+
+The console doubles as a link: `robohub_console_write_raw` and
+`robohub_console_read_byte` reach UART0 through the ROM's console functions, past
+newlib, which turns every `\n` into `\r\n`. So a node's frames and its text
+share the CH340, as they share the Pico's USB CDC.
 
 ## Production
 

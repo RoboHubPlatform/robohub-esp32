@@ -6,7 +6,10 @@
 # name is here, in the platform, rather than in the generator.
 #
 # The platform library is linked after registering, which is what a component
-# does with the components and libraries it needs.
+# does with the components and libraries it needs, together with the libraries
+# the program's preset names (`RHO_PROGRAM_LIBRARIES`, rho 0.21.0: the node's
+# core, link, telemetry and managed layers, robohub ADR-0025). Unset by an older
+# rho, it is empty.
 #
 # @project RoboHub Platform
 # @license MIT
@@ -51,6 +54,7 @@ target_link_libraries(${COMPONENT_LIB} PRIVATE
     -Wl,--undefined=rh_keystore_load
     -Wl,--undefined=rh_keystore_store
     -Wl,--undefined=rh_keystore_platform
+    ${RHO_PROGRAM_LIBRARIES}
     robohub-esp32
     robohub-common
     -Wl,--end-group

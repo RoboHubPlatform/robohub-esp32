@@ -16,3 +16,24 @@ suites:
     kind: command
     tags: [unit, host]
     command: [python3, tests/ota_layout_test.py]
+
+  # The health contracts and the keystore on a board (ESP-0007, ESP-0011):
+  # examples/c/health_check walks a LOLIN32 Lite through a watchdog reset, a
+  # recorded panic and a fed watchdog, with a key held in NVS across each reset,
+  # and says "health-check: passed"; health_check.py builds, flashes and reads it.
+  # The build runs here; the board run is declared skipped until one is on the
+  # bench.
+  - name: health-check-builds
+    kind: build
+    tags: [smoke, software, health]
+    build:
+      project: examples/c/health_check
+      target: lolin32-lite
+
+  # @verifies ESP-0007, ESP-0011
+  - name: health-on-target
+    kind: command
+    command: [python3, examples/c/health_check/health_check.py]
+    tags: [on-target, esp32, health]
+    status: skip
+    reason: needs a LOLIN32 Lite on USB (ESP32_PORT); prints "OK" when the health contracts and the keystore held

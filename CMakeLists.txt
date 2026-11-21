@@ -103,6 +103,7 @@ set(ROBOHUB_ESP_SOURCES
     src/platform/esp_keystore.c
     src/platform/esp_health.c
     src/platform/esp_update.c
+    src/platform/esp_net.c
 )
 
 if(RHO_ROBO_CONFIG AND EXISTS "${RHO_ROBO_CONFIG}")
@@ -160,6 +161,7 @@ if(ROBOHUB_ESP_SDK_AVAILABLE)
   target_link_options(robohub-esp32 INTERFACE
     "LINKER:--undefined=rh_health_platform"
     "LINKER:--undefined=rh_update_platform"
+    "LINKER:--undefined=rh_net_platform"
     "LINKER:--wrap=esp_panic_handler")
 
   # The update slot (esp_update.c) calls ESP-IDF's OTA API, which nothing else
@@ -167,6 +169,17 @@ if(ROBOHUB_ESP_SDK_AVAILABLE)
   # the component itself, and the linker reads it again after this one.
   target_link_libraries(robohub-esp32 INTERFACE
     "$<$<TARGET_EXISTS:idf::app_update>:idf::app_update>")
+
+  # The network contract (esp_net.c): Wi-Fi, esp_netif, lwIP's sockets and the
+  # event loop. Linked privately where ESP-IDF has defined its components — this
+  # library is added after ESP-IDF's project() — so their include directories
+  # (FreeRTOS's port among them) come with them; the link reaches the program
+  # through the static library's own dependencies.
+  foreach(component esp_wifi esp_netif lwip esp_event nvs_flash esp_timer freertos)
+    if(TARGET idf::${component})
+      target_link_libraries(robohub-esp32 PRIVATE idf::${component})
+    endif()
+  endforeach()
 
   # This library's own sources include ESP-IDF's headers — its system headers,
   # its FreeRTOS, its per-peripheral drivers — and it cannot get them from the
@@ -186,6 +199,10 @@ if(ROBOHUB_ESP_SDK_AVAILABLE)
   list(FILTER ROBOHUB_IDF_INCLUDE_DIRS EXCLUDE REGEX "/components/linux/")
   list(FILTER ROBOHUB_IDF_INCLUDE_DIRS EXCLUDE REGEX "/components/riscv/")
   list(FILTER ROBOHUB_IDF_INCLUDE_DIRS EXCLUDE REGEX "/components/linux-")
+  # Two FreeRTOS kernels are vendored; this board's configuration uses the one
+  # ESP-IDF calls `FreeRTOS-Kernel`, and the SMP one's headers, found first,
+  # refuse to compile against it.
+  list(FILTER ROBOHUB_IDF_INCLUDE_DIRS EXCLUDE REGEX "/FreeRTOS-Kernel-SMP/")
   target_include_directories(robohub-esp32 PRIVATE
     ${ROBOHUB_IDF_INCLUDE_DIRS}
     "${CMAKE_BINARY_DIR}/config"

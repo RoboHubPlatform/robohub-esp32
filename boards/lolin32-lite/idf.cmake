@@ -114,16 +114,32 @@ endif()
 
 # The application image ESP-IDF makes (`<project>.bin`, what an OTA slot takes),
 # copied beside the program's ELF in the build's output folder: what an update
-# over the link carries (ESP-0009). ESP-IDF defines the target that makes it
-# while the project is configured, so the copy is added at the end.
+# over the link carries (ESP-0009). The ELF is copied there too when it was
+# linked elsewhere: the generated project names the output folder in a cache
+# entry that reaches a target only when it exists before ESP-IDF's project()
+# creates the ELF — on a second configure, not a first — and `rho flash`, Mesh
+# and the examples all name `build/output/<program>.elf`. ESP-IDF defines the
+# targets while the project is configured, so the copy is added at the end.
 function(robohub_esp32_app_image)
     if(TARGET gen_project_binary)
         get_filename_component(output "${CMAKE_SOURCE_DIR}/../../output" ABSOLUTE)
+        set(elf_steps "")
+        set(elf "${CMAKE_PROJECT_NAME}.elf")
+        if(TARGET ${elf})
+            get_target_property(elf_dir ${elf} RUNTIME_OUTPUT_DIRECTORY)
+            if(elf_dir)
+                get_filename_component(elf_dir "${elf_dir}" ABSOLUTE)
+            endif()
+            if(NOT elf_dir STREQUAL output)
+                set(elf_steps COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${elf}>" "${output}/${elf}")
+            endif()
+        endif()
         add_custom_target(robohub_esp32_app_image ALL
             COMMAND ${CMAKE_COMMAND} -E make_directory "${output}"
             COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.bin" "${output}/${CMAKE_PROJECT_NAME}.bin"
+            ${elf_steps}
             DEPENDS gen_project_binary
-            COMMENT "[robohub-esp32] the application image for an OTA slot (.bin)")
+            COMMENT "[robohub-esp32] the program (.elf) and the image for an OTA slot (.bin) in the output folder")
     endif()
 endfunction()
 cmake_language(DEFER DIRECTORY "${CMAKE_SOURCE_DIR}" CALL robohub_esp32_app_image)

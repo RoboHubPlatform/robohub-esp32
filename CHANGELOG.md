@@ -30,3 +30,17 @@ The ESP32 takes updates over its link (ESP-0008, ESP-0009, robohub ADR-0024).
 - The build copies the application image (`<program>.bin`) beside the ELF in the output folder, where an update takes it from.
 - The library names ESP-IDF's `app_update` component itself, since it is linked after ESP-IDF's archives and nothing else in a program pulls in the OTA API.
 - A host test checks the layout (`tests/ota_layout_test.py`, ESP-0009): the fragment, which builds use it, ESP-IDF's table as ESP-IDF lays it out, and the board's flash. The on-target check of the slot (an update kept, another rolled back, ESP-0008) waits for a board on the bench.
+
+## [0.6.0] - 2026-11-21
+
+The ESP32 on Wi-Fi, and a node template that builds for it (ESP-0010, ESP-0011, robohub ADR-0025).
+
+- `src/platform/esp_net.c` implements robohub-common's network contract:
+  - a Wi-Fi station through esp_netif and esp_wifi, brought up once, never erasing NVS (it holds the keystore), and joined by polling with the watchdog fed;
+  - TCP and UDP through lwIP's non-blocking BSD sockets, where a receive is a `select` bounded by its timeout and a connect waits at most 5 s.
+
+  The library links ESP-IDF's Wi-Fi, netif, lwIP, event, NVS, timer and FreeRTOS components privately, which brings their include directories. The SMP FreeRTOS kernel's headers are left out of the include globs.
+- `robohub_console_write_raw` and `robohub_console_read_byte` reach UART0 through the ROM's console functions, past newlib's `\n` → `\r\n`, so a node's frames and its text share the CH340.
+- `component.cmake` links the libraries the program's preset names (`RHO_PROGRAM_LIBRARIES`, rho 0.21.0), so a program gets the node's core, link, telemetry and managed layers.
+- The build copies the ELF into the output folder beside the `.bin` when it was linked elsewhere. On a first configure the generated output folder does not reach ESP-IDF's ELF target, and `rho flash`, Mesh and the examples all name `build/output/<program>.elf`.
+- `examples/c/health_check`: a watchdog reset, a recorded panic and a fed watchdog, with a key held in NVS across each reset. It is built with the tests, and the run on a board is declared skipped until one is on the bench. `health_check.py` builds it, flashes it and reads the console.
