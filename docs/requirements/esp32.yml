@@ -191,3 +191,21 @@ requirements:
     owner: maintainer
     changed: 2026-11-21
     tags: [health, keystore, on-target]
+
+  - id: ESP-0012
+    title: The ESP32 implements the I2C HAL on ESP-IDF's master driver and registers its bus
+    statement: >
+      When the I2C HAL is chosen (`CONFIG_RH_HAL_I2C`), the platform shall
+      implement robohub-common's I2C HAL on ESP-IDF's I2C master driver — the bus
+      made when a driver first brings it up, a device handle per address, a
+      timeout on every transfer — and the LOLIN32 Lite shall register "i2c0" on
+      GPIO23 (SDA) and GPIO19 (SCL), pins free of its LED, its console and its
+      strapping pins.
+    rationale: The I2C HAL was a stub, so no I2C driver worked on the board; the settlement node's sensor is I2C (robohub ADR-0026).
+    satisfies: [SYS-0072]
+    decided_by: [robohub:ADR-0026]
+    status: approved
+    verification: test
+    owner: maintainer
+    changed: 2026-11-21
+    tags: [i2c, hal]

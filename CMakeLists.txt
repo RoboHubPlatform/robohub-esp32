@@ -175,7 +175,7 @@ if(ROBOHUB_ESP_SDK_AVAILABLE)
   # library is added after ESP-IDF's project() — so their include directories
   # (FreeRTOS's port among them) come with them; the link reaches the program
   # through the static library's own dependencies.
-  foreach(component esp_wifi esp_netif lwip esp_event nvs_flash esp_timer freertos)
+  foreach(component esp_wifi esp_netif lwip esp_event nvs_flash esp_timer freertos esp_driver_i2c)
     if(TARGET idf::${component})
       target_link_libraries(robohub-esp32 PRIVATE idf::${component})
     endif()

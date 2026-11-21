@@ -22,15 +22,20 @@ set(ENV{IDF_PATH} "${IDF_PATH}")
 # build is run through that interpreter rather than the system one, which has
 # neither; the environment is found rather than named, so a machine whose IDF
 # version differs still builds.
-set(ENV{IDF_TOOLS_PATH} "$ENV{HOME}/.espressif")
-file(GLOB ROBOHUB_IDF_PYTHON_ENVS "$ENV{HOME}/.espressif/python_env/idf*_py*_env")
+# Where ESP-IDF's tools were installed: IDF_TOOLS_PATH when the environment
+# names it (a process run with another HOME, such as a test or a service), else
+# ESP-IDF's own default, ~/.espressif.
+if(NOT DEFINED ENV{IDF_TOOLS_PATH} OR "$ENV{IDF_TOOLS_PATH}" STREQUAL "")
+    set(ENV{IDF_TOOLS_PATH} "$ENV{HOME}/.espressif")
+endif()
+file(GLOB ROBOHUB_IDF_PYTHON_ENVS "$ENV{IDF_TOOLS_PATH}/python_env/idf*_py*_env")
 if(ROBOHUB_IDF_PYTHON_ENVS)
     list(GET ROBOHUB_IDF_PYTHON_ENVS 0 ROBOHUB_IDF_PYTHON_ENV)
     set(ENV{IDF_PYTHON_ENV_PATH} "${ROBOHUB_IDF_PYTHON_ENV}")
     set(ENV{PYTHON} "${ROBOHUB_IDF_PYTHON_ENV}/bin/python")
     message(STATUS "[robohub-esp32] ESP-IDF python env at ${ROBOHUB_IDF_PYTHON_ENV}")
 else()
-    message(WARNING "[robohub-esp32] no ESP-IDF python environment found under ~/.espressif; run the vendored IDF's install.sh esp32")
+    message(WARNING "[robohub-esp32] no ESP-IDF python environment found under $ENV{IDF_TOOLS_PATH}; run the vendored IDF's install.sh esp32")
 endif()
 
 # ESP-IDF builds Xtensa code from C, C++ and assembly, so the generated build

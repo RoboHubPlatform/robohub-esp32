@@ -110,6 +110,10 @@ board:
     boot_button:
       gpio: 0
       active_high: false
+    i2c0_sda:
+      gpio: 23
+    i2c0_scl:
+      gpio: 19
   peripherals:
     - name: uart0
       kind: uart

@@ -44,3 +44,11 @@ The ESP32 on Wi-Fi, and a node template that builds for it (ESP-0010, ESP-0011, 
 - `component.cmake` links the libraries the program's preset names (`RHO_PROGRAM_LIBRARIES`, rho 0.21.0), so a program gets the node's core, link, telemetry and managed layers.
 - The build copies the ELF into the output folder beside the `.bin` when it was linked elsewhere. On a first configure the generated output folder does not reach ESP-IDF's ELF target, and `rho flash`, Mesh and the examples all name `build/output/<program>.elf`.
 - `examples/c/health_check`: a watchdog reset, a recorded panic and a fed watchdog, with a key held in NVS across each reset. It is built with the tests, and the run on a board is declared skipped until one is on the bench. `health_check.py` builds it, flashes it and reads the console.
+
+## [0.7.0] - 2026-11-21
+
+I2C on the ESP32 (ESP-0012, robohub ADR-0026).
+
+- `src/hal/esp_i2c.c`: robohub-common's I2C HAL on ESP-IDF's I2C master driver, which was a stub. The bus is made when a driver first brings it up, there is a device handle per address, and every transfer has a 20 ms timeout. The library links `esp_driver_i2c`.
+- The LOLIN32 Lite registers "i2c0" on GPIO23 (SDA) and GPIO19 (SCL), which are free of its LED, console and strapping pins.
+- `idf.cmake` honours `IDF_TOOLS_PATH`, ESP-IDF's own variable, before `~/.espressif`, so a build run with another `HOME` (a test, a service) finds ESP-IDF's Python environment.

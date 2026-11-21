@@ -13,6 +13,10 @@
 #include "esp_console.h"
 #include "error.h"
 
+#if defined(CONFIG_RH_HAL_I2C) && CONFIG_RH_HAL_I2C
+#include "esp_i2c.h"
+#endif
+
 #ifdef RH_ESP_IDF
 #include "driver/gpio.h"
 #endif
@@ -35,11 +39,22 @@ static RoboHubTimer system_timer = {
     .delay_us = esp_timer_delay_us,
 };
 
-// @req ESP-0001
+#if defined(CONFIG_RH_HAL_I2C) && CONFIG_RH_HAL_I2C
+/* The board's I2C bus on the pins bsp.h gives (GPIO23 SDA, GPIO19 SCL): the
+ * LOLIN32 Lite brings out no I2C header, and these two are free of its LED,
+ * its console and its strapping pins (ESP-0012). */
+static RoboHubEspI2C i2c0_bus;
+#endif
+
+// @req ESP-0001, ESP-0012
 void bsp_register_hals(void)
 {
     robohub_register_gpio("user_led", &led_gpio);
     robohub_register_timer("system_timer", &system_timer);
+#if defined(CONFIG_RH_HAL_I2C) && CONFIG_RH_HAL_I2C
+    esp_i2c_create(&i2c0_bus, "i2c0", 0, RH_I2C0_SDA_PIN, RH_I2C0_SCL_PIN);
+    robohub_register_i2c("i2c0", &i2c0_bus.interface);
+#endif
 }
 
 RoboHubError robohub_board_register(void)

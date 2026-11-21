@@ -21,6 +21,11 @@ extern "C" {
 #define RH_CONSOLE_RX_PIN       3
 #define RH_CONSOLE_BAUDRATE     115200
 
+/* The I2C bus (ESP-0012): not a header the board brings out, so two pins free
+ * of the LED, the console and the strapping pins. */
+#define RH_I2C0_SDA_PIN         23
+#define RH_I2C0_SCL_PIN         19
+
 void bsp_register_hals(void);
 void bsp_init(void);
 
