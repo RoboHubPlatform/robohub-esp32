@@ -1,0 +1,8 @@
+# Development builds of robohub-esp32 (ESP-0009, robohub ADR-0024): the board's
+# 4 MB of flash, two OTA slots
+# with NVS where the single-app table had it, and application rollback confirmed
+# by the application — the managed layer confirms an image once it is healthy.
+CONFIG_PARTITION_TABLE_TWO_OTA_LARGE=y
+CONFIG_BOOTLOADER_APP_ROLLBACK=y
+CONFIG_BOOTLOADER_APP_ROLLBACK_CONFIRM_BY_APP=y
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y

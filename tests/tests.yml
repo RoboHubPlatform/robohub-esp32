@@ -6,3 +6,13 @@ suites:
     kind: ctest
     tags: [unit, host]
     ctest: {}
+
+  # The two-slot layout of a development build (ESP-0009): the configuration
+  # fragment, which builds use it, ESP-IDF's table laid out as ESP-IDF lays it
+  # out (NVS where it was, ota_0 where the flash writes the program, both slots in
+  # 4 MB) and the board's flash. Reads files only.
+  # @verifies ESP-0009
+  - name: ota-layout
+    kind: command
+    tags: [unit, host]
+    command: [python3, tests/ota_layout_test.py]

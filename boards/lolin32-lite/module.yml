@@ -94,6 +94,11 @@ board:
   flash:
     tool: esptool
     command: "esptool --chip esp32 --port {env:ESP32_PORT:-/dev/ttyUSB0} --baud {env:ESP32_BAUD:-115200} --before {env:ESP32_BEFORE:-default-reset} --after {env:ESP32_AFTER:-hard-reset} write-flash @flash_args {binary}"
+    # The flash above writes the two-OTA-slot layout of a development build —
+    # ESP-IDF's flash_args carry the bootloader, the table, the initial otadata
+    # and the program into ota_0 (ESP-0009, robohub ADR-0024) — so Mesh records a
+    # board it flashed as one that takes updates over the link.
+    ab: true
   pins:
     user_led:
       gpio: 5

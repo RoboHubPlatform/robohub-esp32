@@ -102,6 +102,7 @@ set(ROBOHUB_ESP_SOURCES
     src/platform/esp_nonce.c
     src/platform/esp_keystore.c
     src/platform/esp_health.c
+    src/platform/esp_update.c
 )
 
 if(RHO_ROBO_CONFIG AND EXISTS "${RHO_ROBO_CONFIG}")
@@ -158,7 +159,14 @@ if(ROBOHUB_ESP_SDK_AVAILABLE)
   # handler is wrapped — its documented hook — so a fault leaves a record.
   target_link_options(robohub-esp32 INTERFACE
     "LINKER:--undefined=rh_health_platform"
+    "LINKER:--undefined=rh_update_platform"
     "LINKER:--wrap=esp_panic_handler")
+
+  # The update slot (esp_update.c) calls ESP-IDF's OTA API, which nothing else
+  # in a program pulls in. This archive is linked after ESP-IDF's, so it names
+  # the component itself, and the linker reads it again after this one.
+  target_link_libraries(robohub-esp32 INTERFACE
+    "$<$<TARGET_EXISTS:idf::app_update>:idf::app_update>")
 
   # This library's own sources include ESP-IDF's headers — its system headers,
   # its FreeRTOS, its per-peripheral drivers — and it cannot get them from the

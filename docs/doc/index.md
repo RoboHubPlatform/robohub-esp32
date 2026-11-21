@@ -85,6 +85,34 @@ the NVS implementation is always the one linked, never the common library's
 On a plain build NVS is readable from flash. NVS encryption protects it, and
 NVS encryption needs flash encryption: both are in the production preset.
 
+## Updates over the link
+
+A development build uses ESP-IDF's two-OTA table (`config/sdkconfig.ota`:
+`two_ota_large`, application rollback confirmed by the application, 4 MB of
+flash). NVS stays at `0x9000` (24 kB), so the keystore's records survive the
+move; `ota_0` and `ota_1` are 1700 kB each, and `ota_0` is at `0x20000`, where the
+ordinary flash writes the program. That flash also writes the initial
+`otadata`, so the next USB flash moves a board to two slots. The manifest says
+so (`board.flash.ab: true`), and Mesh records a board it flashed that way.
+
+`src/platform/esp_update.c` is robohub-common's update slot (ESP-0008, robohub
+ADR-0024):
+
+- an image is written to the slot not running (`esp_ota_begin` with sequential
+  writes, so a sector is erased only when the write reaches it);
+- `esp_ota_end` checks the image before it is named for the next boot, and the
+  bootloader boots it as `PENDING_VERIFY`;
+- the managed layer confirms the image once it is healthy
+  (`esp_ota_mark_app_valid_cancel_rollback`) or gives it up
+  (`esp_ota_mark_app_invalid_rollback_and_reboot`), and a hang ends the same way
+  through the watchdog.
+
+The update's id and versions, its outcome until reported and the board's security
+version are one NVS blob (namespace `rh_update`). The build copies the
+application image, `<program>.bin`, beside the ELF in the output folder; that
+file is what an update sends. A production build keeps its own table and is
+flashed only.
+
 ## Production
 
 `CONFIG_RH_PRODUCTION=y` (`production/production.conf`) builds with

@@ -101,7 +101,32 @@ if(RHO_CONFIG_RH_PRODUCTION)
         "[robohub-esp32] PRODUCTION build: secure boot v2, flash encryption (release mode) and NVS "
         "encryption. The first boot of this image burns eFuses irreversibly; flash it with "
         "`rho flash --production`, which lists every step first.")
+else()
+    # A development build: two OTA slots, NVS where it was, and rollback
+    # confirmed by the application (ESP-0009, robohub ADR-0024). A sdkconfig of
+    # its own, rewritten from the preset at every configure as the production one
+    # is, so a tree built before keeps none of the single-app layout.
+    get_filename_component(ROBOHUB_ESP_OTA_DEFAULTS "${CMAKE_CURRENT_LIST_DIR}/../../config/sdkconfig.ota" ABSOLUTE)
+    set(SDKCONFIG "${CMAKE_BINARY_DIR}/sdkconfig.ota")
+    file(REMOVE "${SDKCONFIG}")
+    set(SDKCONFIG_DEFAULTS "${ROBOHUB_ESP_OTA_DEFAULTS}")
 endif()
+
+# The application image ESP-IDF makes (`<project>.bin`, what an OTA slot takes),
+# copied beside the program's ELF in the build's output folder: what an update
+# over the link carries (ESP-0009). ESP-IDF defines the target that makes it
+# while the project is configured, so the copy is added at the end.
+function(robohub_esp32_app_image)
+    if(TARGET gen_project_binary)
+        get_filename_component(output "${CMAKE_SOURCE_DIR}/../../output" ABSOLUTE)
+        add_custom_target(robohub_esp32_app_image ALL
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${output}"
+            COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/${CMAKE_PROJECT_NAME}.bin" "${output}/${CMAKE_PROJECT_NAME}.bin"
+            DEPENDS gen_project_binary
+            COMMENT "[robohub-esp32] the application image for an OTA slot (.bin)")
+    endif()
+endfunction()
+cmake_language(DEFER DIRECTORY "${CMAKE_SOURCE_DIR}" CALL robohub_esp32_app_image)
 
 # ESP-IDF's own project(): including it before `project()` is how a project
 # becomes an IDF project rather than one beside it.
